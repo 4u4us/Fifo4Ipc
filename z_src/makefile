@@ -5,8 +5,8 @@
 #	g++ -L. -Wl,-rpath=. -Wall -g -o testclient testclient.cpp
 
 IDIR =../z_include
-CC=g++
-CFLAGS=-I$(IDIR)
+CC=g++ 
+CFLAGS=-I$(IDIR) -std=c++11
 
 ODIR=z_obj
 LDIR =../lib

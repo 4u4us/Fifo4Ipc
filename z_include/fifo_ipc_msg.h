@@ -9,7 +9,7 @@ class Fifo_ipc_msg
 {
 	public:
 	enum {
-		PRINT_MSG_REQ,
+		PRINT_MSG_REQ = 100,
 		PRINT_MSG_RESP,
 		READ_FIFO,
 		WRITE_FIFO,
@@ -20,10 +20,11 @@ class Fifo_ipc_msg
 	~Fifo_ipc_msg();
 
 
-	size_t z_write(unsigned char* p_wrBuf, size_t p_nBytes);
-	size_t z_read(unsigned char** p_rdBuf, size_t p_nBytes);
+	size_t z_write(unsigned char* p_wrBuf, size_t p_nBytes, bool done=true);
+	size_t z_read(unsigned char* p_rdBuf, size_t p_nBytes, bool done=true);
 	
 	bool deserializePrintReq(unsigned char* p_rdBuf, std::string& p_str , int& val );
+	bool serializePrintReq(unsigned char** p_wrBuf, size_t& p_allocLength, std::string& p_str , int& p_val );
 
 	protected:
 	

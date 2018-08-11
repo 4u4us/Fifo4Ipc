@@ -13,9 +13,19 @@ unsigned char *rdBuf = NULL;
 bool loopit = true;
 while(loopit)
 	{
+	std::string sensorName = std::string("Voltage");
+	int sensorVal = 154;
+	size_t msgLength = 0;
+	appSideFifo.serializePrintReq(&wrBuf, msgLength, sensorName, sensorVal);
+	appSideFifo.z_write(wrBuf, msgLength, true);
+	
+	size_t respLength = 1;
+	rdBuf = new unsigned char(respLength);
+	appSideFifo.z_read(rdBuf, respLength, true);
+	
 	//re-init buffers	
-	free(rdBuf);
-	free(wrBuf);
+	delete rdBuf;
+	delete wrBuf;
 	wrBuf=NULL;
 	rdBuf=NULL;
 	}
