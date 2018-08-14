@@ -23,8 +23,8 @@ class Fifo_ipc_msg
 	size_t z_write(unsigned char* p_wrBuf, size_t p_nBytes, bool done=true);
 	size_t z_read(unsigned char* p_rdBuf, size_t p_nBytes, bool done=true);
 	
-	bool deserializePrintReq(unsigned char* p_rdBuf, std::string& p_str , int& val );
-	bool serializePrintReq(unsigned char** p_wrBuf, size_t& p_allocLength, std::string& p_str , int& p_val );
+	bool deserializePrintReq( unsigned char* p_rdBuf, std::string& p_str , int& val );
+	bool serializePrintReq(int p_msgId, unsigned char** p_wrBuf, size_t& p_allocLength, std::string p_str , int p_val );
 
 	protected:
 	

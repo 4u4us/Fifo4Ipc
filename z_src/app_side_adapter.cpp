@@ -11,21 +11,25 @@ unsigned char *wrBuf = NULL;
 unsigned char *rdBuf = NULL;
 
 bool loopit = true;
-while(loopit)
+//while(loopit)
 	{
-	std::string sensorName = std::string("Voltage");
-	int sensorVal = 154;
+	std::string sensorName = std::string("Voltages");
+	int sensorVal = 134;
 	size_t msgLength = 0;
-	appSideFifo.serializePrintReq(&wrBuf, msgLength, sensorName, sensorVal);
+	int msg_id = Fifo_ipc_msg::PRINT_MSG_REQ;
+	appSideFifo.serializePrintReq( msg_id , &wrBuf, msgLength, sensorName, sensorVal);
+	std::cout << "APP msg snd id " << msg_id << std::endl;
+	std::cout << "APP msg length " << msgLength << std::endl;
+	std::cout << "APP sensorName length " << sensorName.length() << " Name: " <<  sensorName << std::endl;
 	appSideFifo.z_write(wrBuf, msgLength, true);
 	
 	size_t respLength = 1;
-	rdBuf = new unsigned char(respLength);
+	rdBuf = new unsigned char[respLength];
+	rdBuf[0]='X';
 	appSideFifo.z_read(rdBuf, respLength, true);
-	
-	//re-init buffers	
-	delete rdBuf;
-	delete wrBuf;
+	std::cout << "APP msg rcv  " << rdBuf[0] << std::endl;	
+	delete [] rdBuf;
+	delete [] wrBuf;
 	wrBuf=NULL;
 	rdBuf=NULL;
 	}

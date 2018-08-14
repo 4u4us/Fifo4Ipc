@@ -68,6 +68,24 @@ size_t Fifo_ipc_msg::z_read(unsigned char* p_rdBuf, size_t p_nBytes, bool done)
 	return ret;
 }
 
+bool Fifo_ipc_msg::serializePrintReq(int p_msgId, unsigned char** p_wrBuf, size_t& p_allocLength, std::string p_str, int p_val )
+{
+	// buffer was NOT allocated beforehand.
+	p_allocLength = sizeof(int) + sizeof(size_t) + sizeof(size_t) + sizeof(int) + p_str.length()*sizeof(unsigned char);
+    *p_wrBuf = (unsigned char*)new unsigned char[p_allocLength]; 
+	unsigned char* serPtr = *p_wrBuf;
+	memcpy(serPtr, &p_msgId, sizeof(int) );
+	serPtr += sizeof(int);
+	memcpy(serPtr, &p_allocLength, sizeof(size_t) );
+	serPtr += sizeof(size_t);
+	size_t sensorNameLength = p_str.length();
+	memcpy(serPtr, &sensorNameLength, sizeof(size_t) );
+	serPtr += sizeof(size_t);
+    memcpy(serPtr, &p_val, sizeof(int) );
+	serPtr += sizeof(int);
+    memcpy(serPtr, (unsigned char*)(p_str.c_str()), p_str.length() * sizeof(unsigned char));
+};
+
 bool Fifo_ipc_msg::deserializePrintReq(unsigned char* p_rdBuf, std::string& p_str , int& p_val )
 {
 	// buffer was allocated beforehand.
@@ -78,30 +96,12 @@ bool Fifo_ipc_msg::deserializePrintReq(unsigned char* p_rdBuf, std::string& p_st
 	deserPtr += sizeof(size_t);
 	memcpy(&p_val, deserPtr, sizeof(int));
 	deserPtr += sizeof(int);
-	char* sensorname = new char(sensorNameLength);
+	unsigned char* sensorname = new unsigned char[sensorNameLength];
 	memcpy(sensorname, deserPtr, sensorNameLength);
-	p_str.assign(sensorname,sensorNameLength);
+	//sensorname[sensorNameLength]=0;
+	p_str.append((const char*)sensorname);
 	delete sensorname;
 	
 };
 
-bool Fifo_ipc_msg::serializePrintReq(unsigned char** p_wrBuf, size_t& p_allocLength, std::string& p_str , int& p_val )
-{
-	// buffer was NOT allocated beforehand.
-	p_allocLength =  sizeof(int) + sizeof(size_t) + sizeof(size_t) + sizeof(int) + p_str.length();
-	*p_wrBuf = new unsigned char(p_allocLength); 
-	unsigned char* serPtr = *p_wrBuf;
-	int msgId = Fifo_ipc_msg::PRINT_MSG_REQ;
-	memcpy(serPtr, &msgId, sizeof(int));
-	std::cout << "msg snd id " << msgId << std::endl;
-	serPtr += sizeof(int);
-	memcpy(serPtr, &p_allocLength, sizeof(size_t));
-	std::cout << "msg length " << p_allocLength << std::endl;
-	serPtr += sizeof(size_t);
-	size_t sensorNameLength = p_str.length();
-	memcpy(serPtr, &sensorNameLength, sizeof(size_t) );
-	serPtr += sizeof(size_t);
-    memcpy(serPtr, &p_val, sizeof(int) );
-	serPtr += sizeof(int);
-    memcpy(serPtr, p_str.c_str(), p_str.length() );	
-};
+
