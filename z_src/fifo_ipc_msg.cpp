@@ -86,6 +86,22 @@ bool Fifo_ipc_msg::serializePrintReq(int p_msgId, unsigned char** p_wrBuf, size_
     memcpy(serPtr, (unsigned char*)(p_str.c_str()), p_str.length() * sizeof(unsigned char));
 };
 
+bool Fifo_ipc_msg::serializePrintResp(int p_msgId, unsigned char** p_wrBuf, size_t& p_allocLength, std::string p_str )
+{
+	// buffer was NOT allocated beforehand.
+	p_allocLength = sizeof(int) + sizeof(size_t) + sizeof(size_t) + p_str.length()*sizeof(unsigned char);
+    *p_wrBuf = (unsigned char*)new unsigned char[p_allocLength]; 
+	unsigned char* serPtr = *p_wrBuf;
+	memcpy(serPtr, &p_msgId, sizeof(int) );
+	serPtr += sizeof(int);
+	memcpy(serPtr, &p_allocLength, sizeof(size_t) );
+	serPtr += sizeof(size_t);
+	size_t respStrLength = p_str.length();
+	memcpy(serPtr, &respStrLength, sizeof(size_t) );
+	serPtr += sizeof(size_t);
+    memcpy(serPtr, (unsigned char*)(p_str.c_str()), p_str.length() * sizeof(unsigned char));
+};
+
 bool Fifo_ipc_msg::deserializePrintReq(unsigned char* p_rdBuf, std::string& p_str , int& p_val )
 {
 	// buffer was allocated beforehand.
@@ -101,6 +117,21 @@ bool Fifo_ipc_msg::deserializePrintReq(unsigned char* p_rdBuf, std::string& p_st
 	//sensorname[sensorNameLength]=0;
 	p_str.append((const char*)sensorname);
 	delete sensorname;
+	
+};
+
+bool Fifo_ipc_msg::deserializePrintResp(unsigned char* p_rdBuf, std::string& p_str )
+{
+	// buffer was allocated beforehand.
+	// msgId and msgLength have already been decoded.
+	unsigned char* deserPtr = p_rdBuf;
+	size_t respStrLength = 0;
+	memcpy(&respStrLength, deserPtr, sizeof(size_t));
+	deserPtr += sizeof(size_t);
+	unsigned char* respStr = new unsigned char[respStrLength];
+	memcpy(respStr, deserPtr, respStrLength);
+	p_str.append((const char*)respStr);
+	delete respStr;
 	
 };
 
