@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "platform_side_adapter.h"
+#include <limits.h>
 
 int main(void)
 {
@@ -33,7 +34,10 @@ while(loopit)
 			{
 			std::string sensorName;
 			int sensorValue=0;
-			bool retErr = platfSideFifo.deserializePrintReq(rdBufPtr, sensorName, sensorValue);
+			char aFname[PATH_MAX];
+			memset(aFname,0,PATH_MAX);
+			bool retErr = platfSideFifo.deserializePrintReq(rdBufPtr, bcnt , sensorName, sensorValue,aFname);
+			std::cout << "PLATF lock file name: " << aFname << std::endl;
 			std::cout << "PLATF Sensor " << sensorName << " value=" << sensorValue << "  Err=" << retErr << std::endl;
 			std::string resp = std::string("OK");
 			std::cout << "PLATF Sending response string:  " << resp << std::endl;

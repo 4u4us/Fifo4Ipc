@@ -68,10 +68,13 @@ size_t Fifo_ipc_msg::z_read(unsigned char* p_rdBuf, size_t p_nBytes, bool done)
 	return ret;
 }
 
-bool Fifo_ipc_msg::serializePrintReq(int p_msgId, unsigned char** p_wrBuf, size_t& p_allocLength, std::string p_str, int p_val )
+//______________________________________________________________________________
+
+bool Fifo_ipc_msg::serializePrintReq(int p_msgId, unsigned char** p_wrBuf, size_t& p_allocLength,std::string p_str, int p_val, char* aFname )
 {
 	// buffer was NOT allocated beforehand.
-	p_allocLength = sizeof(int) + sizeof(size_t) + sizeof(size_t) + sizeof(int) + p_str.length()*sizeof(unsigned char);
+	p_allocLength = sizeof(int) + sizeof(size_t) + sizeof(size_t) + sizeof(int) + p_str.length()*sizeof(unsigned char)
+		+ strlen(aFname)+1;
     *p_wrBuf = (unsigned char*)new unsigned char[p_allocLength]; 
 	unsigned char* serPtr = *p_wrBuf;
 	memcpy(serPtr, &p_msgId, sizeof(int) );
@@ -84,25 +87,14 @@ bool Fifo_ipc_msg::serializePrintReq(int p_msgId, unsigned char** p_wrBuf, size_
     memcpy(serPtr, &p_val, sizeof(int) );
 	serPtr += sizeof(int);
     memcpy(serPtr, (unsigned char*)(p_str.c_str()), p_str.length() * sizeof(unsigned char));
+    serPtr += p_str.length() * sizeof(unsigned char);
+    memcpy(serPtr, aFname, strlen(aFname)+1);
+    
+    return true;
+    
+    
 };
-
-bool Fifo_ipc_msg::serializePrintResp(int p_msgId, unsigned char** p_wrBuf, size_t& p_allocLength, std::string p_str )
-{
-	// buffer was NOT allocated beforehand.
-	p_allocLength = sizeof(int) + sizeof(size_t) + sizeof(size_t) + p_str.length()*sizeof(unsigned char);
-    *p_wrBuf = (unsigned char*)new unsigned char[p_allocLength]; 
-	unsigned char* serPtr = *p_wrBuf;
-	memcpy(serPtr, &p_msgId, sizeof(int) );
-	serPtr += sizeof(int);
-	memcpy(serPtr, &p_allocLength, sizeof(size_t) );
-	serPtr += sizeof(size_t);
-	size_t respStrLength = p_str.length();
-	memcpy(serPtr, &respStrLength, sizeof(size_t) );
-	serPtr += sizeof(size_t);
-    memcpy(serPtr, (unsigned char*)(p_str.c_str()), p_str.length() * sizeof(unsigned char));
-};
-
-bool Fifo_ipc_msg::deserializePrintReq(unsigned char* p_rdBuf, std::string& p_str , int& p_val )
+bool Fifo_ipc_msg::deserializePrintReq(unsigned char* p_rdBuf, size_t msgLength, std::string& p_str,int& p_val, char* aFname )
 {
 	// buffer was allocated beforehand.
 	// msgId and msgLength have already been decoded.
@@ -117,7 +109,30 @@ bool Fifo_ipc_msg::deserializePrintReq(unsigned char* p_rdBuf, std::string& p_st
 	//sensorname[sensorNameLength]=0;
 	p_str.append((const char*)sensorname);
 	delete sensorname;
+	deserPtr += sensorNameLength;
+	memcpy(aFname, deserPtr, msgLength- sizeof(size_t) - sensorNameLength - sizeof(int));
 	
+	return true;
+	
+};
+
+//______________________________________________________________________________
+bool Fifo_ipc_msg::serializePrintResp(int p_msgId, unsigned char** p_wrBuf, size_t& p_allocLength, std::string p_str )
+{
+	// buffer was NOT allocated beforehand.
+	p_allocLength = sizeof(int) + sizeof(size_t) + sizeof(size_t) + p_str.length()*sizeof(unsigned char);
+    *p_wrBuf = (unsigned char*)new unsigned char[p_allocLength]; 
+	unsigned char* serPtr = *p_wrBuf;
+	memcpy(serPtr, &p_msgId, sizeof(int) );
+	serPtr += sizeof(int);
+	memcpy(serPtr, &p_allocLength, sizeof(size_t) );
+	serPtr += sizeof(size_t);
+	size_t respStrLength = p_str.length();
+	memcpy(serPtr, &respStrLength, sizeof(size_t) );
+	serPtr += sizeof(size_t);
+    memcpy(serPtr, (unsigned char*)(p_str.c_str()), p_str.length() * sizeof(unsigned char));
+    
+    return true;
 };
 
 bool Fifo_ipc_msg::deserializePrintResp(unsigned char* p_rdBuf, std::string& p_str )
@@ -133,6 +148,8 @@ bool Fifo_ipc_msg::deserializePrintResp(unsigned char* p_rdBuf, std::string& p_s
 	p_str.append((const char*)respStr);
 	delete respStr;
 	
+	return true;
+	
 };
 
-
+//______________________________________________________________________________

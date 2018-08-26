@@ -2,8 +2,19 @@
 #include <iostream>
 #include "app_side_adapter.h"
 
+
 int main(void)
 {
+
+char testlnkname[] = "testlnkname.testlock";
+int fd_testlnkname = open(testlnkname, O_CREAT | O_RDWR, 0666);
+char lnkname[PATH_MAX];  
+char passParamLnkname[PATH_MAX];
+memset(lnkname,0,PATH_MAX);
+memset(passParamLnkname,0,PATH_MAX);
+snprintf(lnkname,PATH_MAX,"/proc/%d/fd/%d",getpid(),fd_testlnkname);
+// this way with readlink, we get the full path
+readlink(lnkname, passParamLnkname, PATH_MAX);
 
 Fifo_ipc_msg appSideFifo(false);
 
@@ -17,7 +28,8 @@ bool loopit = true;
 	int sensorVal = 134;
 	size_t msgLength = 0;
 	int msg_id = Fifo_ipc_msg::PRINT_MSG_REQ;
-	appSideFifo.serializePrintReq( msg_id , &wrBuf, msgLength, sensorName, sensorVal);
+	
+	appSideFifo.serializePrintReq( msg_id , &wrBuf, msgLength, sensorName, sensorVal,passParamLnkname);
 	std::cout << "APP msg snd id " << msg_id << std::endl;
 	std::cout << "APP msg length " << msgLength << std::endl;
 	std::cout << "APP sensorName length " << sensorName.length() << " Name: " <<  sensorName << std::endl;
@@ -66,5 +78,6 @@ bool loopit = true;
 	rdBuf=NULL;
 	}
 
+close(fd_testlnkname);
 return 0;
 }

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+make clean
+
+make
+
 # run a test loop
 
 testCount=5
